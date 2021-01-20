@@ -61,7 +61,7 @@ setup(
     },
     license='Apache 2',
     packages=['apyum'],
-    python_requires='>=3.7',
+    python_requires='>=3.8',
     install_requires=[
         'celery',
         'aiohttp',
