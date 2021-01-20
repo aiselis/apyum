@@ -30,17 +30,18 @@ class CeleryClient:
         self.celery.conf.update(**settings)
         self.loop = loop if loop else asyncio.get_event_loop()
 
-    async def call(self, id, method, params, ignore_result: bool, executor=None):
+    async def call(self, id, method, params, executor=None):
         args = params if isinstance(params, list) else None
         kwargs = params if isinstance(params, dict) else None
         try:
-            if ignore_result:
-                pfunc = partial(self.celery.send_task, method, args, kwargs, ignore_result=True)
-                await self.loop.run_in_executor(executor, pfunc)
+            if not id:
+                send_task_func = partial(self.celery.send_task, method, args, kwargs, ignore_result=True)
+                await self.loop.run_in_executor(executor, send_task_func)
             else:
-                pfunc = partial(self.celery.send_task, method, args, kwargs, ignore_result=False)
-                result = await self.loop.run_in_executor(executor, pfunc)
-                return result.get()
+                send_task_func = partial(self.celery.send_task, method, args, kwargs, ignore_result=False)
+                response = await self.loop.run_in_executor(executor, send_task_func)
+                get_func = partial(response.get)
+                return await self.loop.run_in_executor(executor, get_func)
         except celery.exceptions.NotRegistered:
             raise JsonRpcMethodNotFoundError(id)
 
@@ -52,7 +53,7 @@ class Dispatcher:
             'jsonrpc': {'const': '2.0'},
             'method': {'type': 'string'},
             'params': {'type': ['array', 'object']},
-            'id': {'type': 'number'},
+            'id': {'type': 'string'},
         },
         'required': ['jsonrpc', 'method', 'params']
     }
@@ -67,22 +68,30 @@ class Dispatcher:
         except ValidationError:
             raise JsonRpcInvalidRequestError()
 
-    async def run_single(self, prefix, request) -> dict:
+    async def run_single(self, prefix, request):
         try:
             self.validate(request)
             self.logger.info(f"Sending request {request}")
             method = f"{prefix}.{request['method']}" if prefix else request['method']
-            return dict(
-                jsonrpc='2.0',
-                result=await self.celery.call(request['id'], method, request['params'], not request.get('id', None)),
-                id=request['id']
-            )
+            if 'id' in request:
+                return dict(
+                    jsonrpc='2.0',
+                    result=await self.celery.call(request['id'], method, request['params']),
+                    id=request['id']
+                )
+            else:
+                await self.celery.call(None, method, request['params'])
         except JsonRpcError as error:
             self.logger.error(f"{error}")
             return error.to_dict()
 
     async def run_batch(self, prefix, request: list) -> list:
-        return await asyncio.gather(*(self.run_single(prefix, row) for row in request))
+        result = list()
+        for partial in asyncio.as_completed([self.run_single(prefix, row) for row in request]):
+            item = await partial
+            if item:
+                result.append(item)
+        return result
 
     async def execute(self, prefix, request):
         if isinstance(request, list):
