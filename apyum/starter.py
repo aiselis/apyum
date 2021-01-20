@@ -31,9 +31,9 @@ class Application:
         else:
             logging.basicConfig(format="%(asctime)s - %(name)s [%(levelname)s] - %(message)s", level=logging.INFO)
 
-    def run(self, path, port):
+    def start(self):
         self.app = web.Application(middlewares=[validator_handler], logger=self.logger)
         celery = CeleryClient(self.settings['celery'])
         self.app['dispatcher'] = Dispatcher(celery, self.logger)
         self.app.add_routes(routes)
-        web.run_app(self.app, path=path, port=port)
+        return self.app
