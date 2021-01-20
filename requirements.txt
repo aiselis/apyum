@@ -1,0 +1,12 @@
+coverage
+flake8
+isort
+pytest
+pytest-asyncio
+pytest-cov
+pytest-sugar
+pytest-timeout
+aiohttp
+pyyaml
+celery
+jsonschema
