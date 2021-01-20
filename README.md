@@ -77,14 +77,14 @@ pip install apyum
 
 To Do
 -----
-- Tests
+- More tests
 - Autentication requests
 - Insert an api documentation (like https://open-rpc.org)
 - Documentation and examples
 
 Requirements
 ------------
-- Python >= 3.7
+- Python >= 3.8
 - Celery 5
 
 License

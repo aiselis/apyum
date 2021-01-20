@@ -19,8 +19,8 @@ import sys
 import pathlib
 from setuptools import setup
 
-if sys.version_info < (3, 7):
-    raise RuntimeError("Apyum requires Python 3.7+")
+if sys.version_info < (3, 8):
+    raise RuntimeError("Apyum requires Python 3.8+")
 
 HERE = pathlib.Path(__file__).parent
 
@@ -45,7 +45,6 @@ setup(
         'Intended Audience :: Developers',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Development Status :: 3 - Alpha',
