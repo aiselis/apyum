@@ -35,7 +35,7 @@ This starts Apyum listening to 8080 port. For change listening port user paramet
 
 Or start with gunicorn:
 ```sh
-APYUM_SETTINGS=settings.yml gunicorn apyum.main:create --bind localhost:5000 --worker-class aiohttp.GunicornWebWorker --worker 4
+APYUM_SETTINGS=settings.yml gunicorn apyum.main:create --bind=localhost:5000 --worker-class=aiohttp.GunicornWebWorker --workers=4
 ```
 
 Calling service example
