@@ -23,5 +23,4 @@ routes = RouteTableDef()
 async def json_rpc(request: Request) -> Response:
     dispatcher = request.app['dispatcher']
     prefix = request.match_info['path'].replace('/', '.')
-    print(prefix)
     return web.json_response(await dispatcher.execute(prefix, await request.json()))

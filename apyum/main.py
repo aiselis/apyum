@@ -14,21 +14,30 @@
 #    limitations under the License.
 
 from apyum.starter import Application
-from argparse import ArgumentParser, FileType
+from argparse import ArgumentParser
 import yaml
 import apyum
+import os
+import aiohttp
+
+
+async def create(settings_file=None):
+    if not settings_file:
+        settings_file = os.environ.get('APYUM_SETTINGS')
+    with open(settings_file, 'r') as file:
+        settings = yaml.load(file, Loader=yaml.Loader)
+        application = Application(settings)
+        return application.start()
 
 
 def run():
+    print(apyum.__banner__.format(apyum.__version__))
     parser = ArgumentParser(description='Apyum adapter')
-    parser.add_argument('settings', type=FileType('r'), help='setting file')
+    parser.add_argument('settings', type=str, help='setting file')
     parser.add_argument('--port', '-p', type=int, nargs='?', help='port listener')
     parser.add_argument('--path', '-s', type=str, nargs='?', help='unix socket path')
     args = parser.parse_args()
-    settings = yaml.load(args.settings, Loader=yaml.Loader)
-    print(apyum.__banner__.format(apyum.__version__))
-    app = Application(settings)
-    app.run(args.path, args.port)
+    aiohttp.web.run_app(create(args.settings), path=args.path, port=args.port)
 
 
 if __name__ == '__main__':

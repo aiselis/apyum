@@ -27,11 +27,16 @@ logging:
 The *celery* section is to be written as described by the Celery configuration (see https://docs.celeryproject.org/en/stable/userguide/configuration.html).  
 The *logging* section is optional and can be customized as described by the Python logging manual (see https://docs.python.org/3/library/logging.config.html).  
 
-To start Apyum launch:
+To start Apyum launch standalone:
 ```sh
 apyum settings.yml
 ```
-This starts Apyum listening to 8080 port. For change listening port user parameter --port or to listen in a unix socket use parameter --path
+This starts Apyum listening to 8080 port. For change listening port user parameter --port or to listen in a unix socket use parameter --path  
+
+Or start with gunicorn:
+```sh
+APYUM_SETTINGS=settings.yml gunicorn apyum.main:create --bind localhost:5000 --worker-class aiohttp.GunicornWebWorker --worker 4
+```
 
 Calling service example
 -----------------------
